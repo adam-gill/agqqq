@@ -313,6 +313,40 @@
         border-radius: 3px;
         margin: 0 auto;
       }
+
+      /* Mobile: shrink table text + skeleton so the table never
+         exceeds the viewport and no horizontal scrollbar appears. */
+      @media (max-width: 600px) {
+        th {
+          padding: 8px 6px;
+          font-size: 11px;
+        }
+
+        td {
+          padding: 8px 6px;
+          font-size: 12px;
+        }
+
+        .skeleton-row td {
+          padding: 8px 6px;
+        }
+
+        .skeleton-ticker {
+          width: 40px;
+        }
+
+        .skeleton-rank {
+          width: 24px;
+        }
+
+        .skeleton-percent {
+          width: 36px;
+        }
+
+        .skeleton-amount {
+          width: 56px;
+        }
+      }
     </style>
   </head>
   <body>

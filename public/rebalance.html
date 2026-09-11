@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rebalance — QQQ Portfolio Calculator</title>
+    <style>
+      html,
+      body {
+        background: #0f0f0f;
+        color: #e0e0e0;
+        font-family:
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+      }
+      .container {
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 16px;
+      }
+      h1 {
+        font-size: 24px;
+        font-weight: 600;
+        text-align: center;
+        margin-bottom: 24px;
+      }
+      .back {
+        display: inline-block;
+        margin-bottom: 16px;
+        color: #888;
+        text-decoration: none;
+        font-size: 13px;
+      }
+      .back:hover {
+        color: #4a90e2;
+      }
+      .description {
+        background: #1a1a1a;
+        padding: 18px 22px;
+        border-radius: 8px;
+        font-size: 14px;
+        line-height: 1.6;
+        color: #b8b8b8;
+      }
+      .description em {
+        color: #e0e0e0;
+        font-style: italic;
+      }
+
+      .error {
+        background: #2a1a1a;
+        color: #ff6b6b;
+        padding: 14px;
+        border-radius: 8px;
+        text-align: center;
+        margin-top: 12px;
+        font-size: 13px;
+      }
+
+      /* Target weights chart */
+      .target-chart {
+        margin-top: 20px;
+        background: #1a1a1a;
+        padding: 18px 20px;
+        border-radius: 8px;
+      }
+
+      .target-chart-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+
+      .target-chart-title h2 {
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #e0e0e0;
+        margin: 0;
+      }
+
+      .target-chart-title .subtitle {
+        font-size: 12px;
+        color: #888;
+      }
+
+      .target-bars {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .target-bar {
+        display: grid;
+        grid-template-columns: 60px 1fr 56px;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+      }
+
+      .target-bar .bar-ticker {
+        font-family: "Courier New", monospace;
+        font-weight: 600;
+        color: #b8b8b8;
+      }
+
+      .target-bar .bar-track {
+        position: relative;
+        height: 14px;
+        background: #0f0f0f;
+        border: 1px solid #2a2a2a;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+
+      .target-bar .bar-fill {
+        position: absolute;
+        inset: 0 auto 0 0;
+        background: linear-gradient(90deg, #2c6cb8 0%, #4a90e2 100%);
+        border-radius: 3px;
+        width: 0%;
+        transition: width 0.5s ease;
+      }
+
+      .target-bar .bar-pct {
+        font-variant-numeric: tabular-nums;
+        color: #e0e0e0;
+        font-weight: 600;
+        text-align: right;
+      }
+
+      /* Holdings input */
+      .holdings-form {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+        background: #1a1a1a;
+        padding: 16px;
+        border-radius: 8px;
+        align-items: center;
+      }
+
+      .holdings-form input[type="text"] {
+        flex: 0 0 140px;
+        background: #0f0f0f;
+        border: 1px solid #333;
+        color: #e0e0e0;
+        padding: 10px 12px;
+        border-radius: 6px;
+        font: inherit;
+        font-size: 14px;
+        font-family: "Courier New", monospace;
+        font-weight: 600;
+        outline: none;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      }
+
+      .holdings-form input[type="number"] {
+        flex: 1;
+        background: #0f0f0f;
+        border: 1px solid #333;
+        color: #e0e0e0;
+        padding: 10px 12px;
+        border-radius: 6px;
+        font: inherit;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      }
+
+      .holdings-form input:focus {
+        border-color: #4a90e2;
+        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+      }
+
+      .holdings-form button.add-btn {
+        flex: 0 0 auto;
+        width: 42px;
+        height: 42px;
+        background: linear-gradient(180deg, #2a2a2a 0%, #1f1f1f 100%);
+        border: 1px solid #333;
+        border-radius: 6px;
+        color: #b8b8b8;
+        font-size: 22px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.15s ease, box-shadow 0.15s ease,
+          background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+      }
+
+      .holdings-form button.add-btn:hover:not(:disabled) {
+        color: #f0f0f0;
+        background: linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 100%);
+        border-color: #4a90e2;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 14px rgba(74, 144, 226, 0.25),
+          0 2px 4px rgba(0, 0, 0, 0.5);
+      }
+
+      .holdings-form button.add-btn:active:not(:disabled) {
+        transform: translateY(0);
+      }
+
+      .holdings-form button.add-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+
+      .holdings-form .field-label {
+        display: none;
+      }
+
+      /* Cash-deposit form mirrors the holdings form for visual consistency */
+      .cash-form {
+        display: flex;
+        gap: 10px;
+        margin-top: 12px;
+        background: #1a1a1a;
+        padding: 16px;
+        border-radius: 8px;
+        align-items: center;
+      }
+
+      .cash-form .cash-label {
+        flex: 0 0 auto;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #b8b8b8;
+        padding-left: 4px;
+      }
+
+      .cash-form input[type="number"] {
+        flex: 1;
+        background: #0f0f0f;
+        border: 1px solid #333;
+        color: #e0e0e0;
+        padding: 10px 12px;
+        border-radius: 6px;
+        font: inherit;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      }
+
+      .cash-form input:focus {
+        border-color: #4a90e2;
+        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+      }
+
+      .cash-form button.cash-add-btn {
+        flex: 0 0 auto;
+        width: 42px;
+        height: 42px;
+        background: linear-gradient(180deg, #2a2a2a 0%, #1f1f1f 100%);
+        border: 1px solid #333;
+        border-radius: 6px;
+        color: #b8b8b8;
+        font-size: 22px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.15s ease, box-shadow 0.15s ease,
+          background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+      }
+
+      .cash-form button.cash-add-btn:hover:not(:disabled) {
+        color: #f0f0f0;
+        background: linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 100%);
+        border-color: #4a90e2;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 14px rgba(74, 144, 226, 0.25),
+          0 2px 4px rgba(0, 0, 0, 0.5);
+      }
+
+      .cash-form button.cash-add-btn:active:not(:disabled) {
+        transform: translateY(0);
+      }
+
+      .cash-form button.cash-add-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+
+      /* Holdings list */
+      .holdings-list {
+        list-style: none;
+        padding: 0;
+        margin: 16px 0 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .holdings-list:empty::before {
+        content: "No holdings or cash added yet.";
+        color: #555;
+        font-size: 13px;
+        font-style: italic;
+      }
+
+      /* Holdings summary */
+      .holdings-summary {
+        margin-top: 16px;
+        background: #141414;
+        border: 1px solid #2a2a2a;
+        border-radius: 8px;
+        padding: 12px 16px;
+        font-size: 13px;
+        color: #b8b8b8;
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .holdings-summary .total-label {
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 12px;
+        color: #888;
+      }
+
+      .holdings-summary .total-value {
+        color: #e0e0e0;
+        font-weight: 600;
+        font-size: 16px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .holding-bubble {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 8px 8px 12px;
+        background: #1f2a3a;
+        border: 1px solid #2c4264;
+        border-radius: 999px;
+        font-size: 13px;
+        color: #e0e0e0;
+        animation: bubble-in 0.2s ease;
+      }
+
+      @keyframes bubble-in {
+        from {
+          opacity: 0;
+          transform: scale(0.85);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      .holding-bubble .bubble-ticker {
+        font-family: "Courier New", monospace;
+        font-weight: 600;
+        color: #4a90e2;
+      }
+
+      .holding-bubble .bubble-amount {
+        color: #b8b8b8;
+      }
+
+      .holding-bubble .bubble-pct {
+        color: #4a90e2;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        padding-left: 4px;
+        border-left: 1px solid #2c4264;
+      }
+
+      .holding-bubble .bubble-remove {
+        background: transparent;
+        border: none;
+        color: #888;
+        cursor: pointer;
+        font-size: 16px;
+        line-height: 1;
+        padding: 0 4px;
+        border-radius: 50%;
+        transition: color 0.15s ease, background 0.15s ease;
+      }
+
+      .holding-bubble .bubble-remove:hover {
+        color: #ff6b6b;
+        background: rgba(255, 107, 107, 0.1);
+      }
+
+      /* Cash-deposit bubble — distinct green styling */
+      .cash-bubble {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 8px 8px 14px;
+        background: #14321f;
+        border: 1px solid #2c6b40;
+        border-radius: 999px;
+        font-size: 13px;
+        color: #e0e0e0;
+        animation: bubble-in 0.2s ease;
+      }
+
+      .cash-bubble .cash-tag {
+        font-family: "Courier New", monospace;
+        font-weight: 600;
+        color: #6ed785;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+        font-size: 11px;
+      }
+
+      .cash-bubble .cash-amount {
+        color: #b8e6c1;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .cash-bubble .bubble-remove {
+        background: transparent;
+        border: none;
+        color: #5e8c6d;
+        cursor: pointer;
+        font-size: 16px;
+        line-height: 1;
+        padding: 0 4px;
+        border-radius: 50%;
+        transition: color 0.15s ease, background 0.15s ease;
+      }
+
+      .cash-bubble .bubble-remove:hover {
+        color: #ff6b6b;
+        background: rgba(255, 107, 107, 0.12);
+      }
+
+      /* Rebalance action button */
+      .rebalance-actions {
+        margin-top: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+      }
+
+      .rebalance-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 28px;
+        font: inherit;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: #f0f0f0;
+        background: linear-gradient(180deg, #2c6cb8 0%, #1f4f87 100%);
+        border: 1px solid #4a90e2;
+        border-radius: 6px;
+        cursor: pointer;
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset,
+          0 2px 4px rgba(0, 0, 0, 0.4);
+        transition: transform 0.18s ease, box-shadow 0.18s ease,
+          background 0.18s ease, border-color 0.18s ease;
+      }
+
+      .rebalance-btn:hover:not(:disabled) {
+        background: linear-gradient(180deg, #3a82d8 0%, #265fa5 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(74, 144, 226, 0.45),
+          0 2px 4px rgba(0, 0, 0, 0.5);
+      }
+
+      .rebalance-btn:active:not(:disabled) {
+        transform: translateY(0);
+      }
+
+      .rebalance-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+        border-color: #2c4a6e;
+      }
+
+      /* Clear (reset) button — only shown after a rebalance was run */
+      .clear-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 22px;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: #b8b8b8;
+        background: #1a1a1a;
+        border: 1px solid #2c2c2c;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: transform 0.18s ease, box-shadow 0.18s ease,
+          background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+      }
+
+      .clear-btn:hover {
+        color: #ff8b8b;
+        background: #1f1414;
+        border-color: #6b2c2c;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(107, 44, 44, 0.25),
+          0 2px 4px rgba(0, 0, 0, 0.5);
+      }
+
+      .clear-btn:active {
+        transform: translateY(0);
+      }
+
+      .clear-btn[hidden] {
+        display: none;
+      }
+
+      .rebalance-btn .btn-hint {
+        margin-left: 10px;
+        font-size: 11px;
+        font-weight: 500;
+        text-transform: none;
+        letter-spacing: 0;
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      /* Results panel */
+      .results {
+        margin-top: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+
+      .results[hidden] {
+        display: none;
+      }
+
+      .results h2 {
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #e0e0e0;
+        margin: 0 0 12px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #1a1a1a;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      thead {
+        background: #0a0a0a;
+      }
+
+      th {
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      th:last-child {
+        text-align: center;
+      }
+
+      td {
+        padding: 12px;
+        border-top: 1px solid #2a2a2a;
+        font-size: 14px;
+      }
+
+      td:last-child {
+        text-align: center;
+      }
+
+      /* Summary table — quiet, read-only look */
+      .summary-table td {
+        font-variant-numeric: tabular-nums;
+      }
+
+      .summary-table .ticker {
+        font-weight: 600;
+        font-family: "Courier New", monospace;
+      }
+
+      .summary-table .summary-amount {
+        color: #e0e0e0;
+      }
+
+      .summary-table .summary-pct {
+        color: #4a90e2;
+        font-weight: 600;
+      }
+
+      .summary-table .summary-target {
+        color: #888;
+        font-size: 12px;
+      }
+
+      /* Trades table — buy/sell action colors, strike-through on done */
+      .trades-table td {
+        font-variant-numeric: tabular-nums;
+      }
+
+      .trades-table .trade-ticker {
+        font-weight: 600;
+        font-family: "Courier New", monospace;
+      }
+
+      .trades-table .trade-action {
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 12px;
+      }
+
+      .trades-table .trade-action.buy {
+        color: #6ed785;
+      }
+
+      .trades-table .trade-action.sell {
+        color: #ff8b8b;
+      }
+
+      .trades-table .trade-amount {
+        font-weight: 600;
+      }
+
+      .trades-table tr.trade-done td {
+        text-decoration: line-through;
+        text-decoration-color: rgba(255, 255, 255, 0.4);
+        color: #777;
+      }
+
+      .trades-table tr.trade-done .trade-action,
+      .trades-table tr.trade-done .trade-amount {
+        text-decoration: line-through;
+      }
+
+      .trades-table td.checkbox-cell {
+        width: 36px;
+      }
+
+      .trades-table input[type="checkbox"] {
+        accent-color: #4a90e2;
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+      }
+
+      .results-note {
+        font-size: 12px;
+        color: #777;
+        font-style: italic;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <a href="index.html" class="back">&larr; Back to calculator</a>
+      <h1>Rebalance</h1>
+      <p class="description">
+        Rebalance your portfolio to align with the current weights for each
+        stock in the agqqq index. It's recommended to rebalance once a quarter, or at
+        the very least every other quarter. Running this <em>agqqq</em> index
+        in a dedicated account is highly recommended — it makes rebalancing
+        far simpler, since you won't have to dig through old trades or do the
+        math on when each position was opened.
+      </p>
+
+      <section class="target-chart" id="targetChart">
+        <div class="target-chart-title">
+          <h2>AGQQQ Target Weights</h2>
+          <span class="subtitle" id="targetChartSubtitle">Top 15 from QQQ</span>
+        </div>
+        <div class="target-bars" id="targetBars"></div>
+      </section>
+
+      <div id="error" class="error" style="display: none"></div>
+
+      <form class="holdings-form" id="holdingsForm" autocomplete="off">
+        <label class="field-label" for="tickerInput">Ticker</label>
+        <input
+          type="text"
+          id="tickerInput"
+          placeholder="Ticker (e.g. NVDA)"
+          maxlength="10"
+          required
+        />
+        <label class="field-label" for="amountInput">Amount</label>
+        <input
+          type="number"
+          id="amountInput"
+          placeholder="$ Amount owned (e.g. 1234.56)"
+          step="0.01"
+          min="0"
+          required
+        />
+        <button type="submit" class="add-btn" aria-label="Add holding">+</button>
+      </form>
+
+      <form class="cash-form" id="cashForm" autocomplete="off">
+        <label class="field-label" for="cashInput">Cash</label>
+        <span class="cash-label">$</span>
+        <input
+          type="number"
+          id="cashInput"
+          placeholder="Extra cash to invest (e.g. 500.00)"
+          step="0.01"
+          min="0"
+          required
+        />
+        <button type="submit" class="cash-add-btn" aria-label="Add cash">+</button>
+      </form>
+
+      <div class="holdings-summary" id="holdingsSummary">
+        <span class="total-label">Total</span>
+        <span class="total-value" id="totalValue">$0.00</span>
+      </div>
+      <ul class="holdings-list" id="holdingsList"></ul>
+
+      <div class="rebalance-actions">
+        <button
+          type="button"
+          class="rebalance-btn"
+          id="rebalanceBtn"
+          disabled
+        >
+          Rebalance
+          <span class="btn-hint" id="rebalanceBtnHint">Loading weights…</span>
+        </button>
+        <button
+          type="button"
+          class="clear-btn"
+          id="clearBtn"
+          hidden
+        >
+          Clear
+        </button>
+      </div>
+
+      <section class="results" id="results" hidden>
+        <div>
+          <h2>Trades to make</h2>
+          <table class="trades-table" id="tradesTable">
+            <thead>
+              <tr>
+                <th></th>
+                <th>TICKER</th>
+                <th>ACTION</th>
+                <th>$ AMOUNT</th>
+                <th>% OF PORTFOLIO</th>
+              </tr>
+            </thead>
+            <tbody id="tradesBody"></tbody>
+          </table>
+          <p class="results-note">
+            Check a row to mark that trade as done. Sorted by largest trade first.
+          </p>
+        </div>
+
+        <div>
+          <h2>Position after rebalance</h2>
+          <table class="summary-table" id="summaryTable">
+            <thead>
+              <tr>
+                <th>TICKER</th>
+                <th>$ HELD AFTER</th>
+                <th>WEIGHT</th>
+                <th>TARGET</th>
+              </tr>
+            </thead>
+            <tbody id="summaryBody"></tbody>
+          </table>
+          <p class="results-note">
+            Each row's weight is exactly the AGQQQ target. Weights sum to 100%.
+          </p>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      // Hold the holdings map + an ordered list of cash deposits.
+      // Holdings are keyed by ticker (so re-adding a ticker updates);
+      // cash deposits are kept as an ordered list (so a user can deposit
+      // in separate tranches and remove any one of them independently).
+      const holdings = new Map();
+      const cashDeposits = []; // { id, amount }
+      let cashSeq = 0;
+
+      const $form = document.getElementById("holdingsForm");
+      const $ticker = document.getElementById("tickerInput");
+      const $amount = document.getElementById("amountInput");
+      const $list = document.getElementById("holdingsList");
+      const $total = document.getElementById("totalValue");
+      const $addBtn = $form.querySelector("button.add-btn");
+
+      const $cashForm = document.getElementById("cashForm");
+      const $cashInput = document.getElementById("cashInput");
+      const $cashAddBtn = $cashForm.querySelector("button.cash-add-btn");
+
+      function normalizeTicker(raw) {
+        return raw.trim().toUpperCase().replace(/\s+/g, "");
+      }
+
+      function fmtAmount(n) {
+        return `$${n.toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}`;
+      }
+
+      function fmtPercent(n) {
+        if (!Number.isFinite(n)) return "0.00%";
+        return `${n.toFixed(2)}%`;
+      }
+
+      function cashTotal() {
+        let s = 0;
+        for (const c of cashDeposits) s += c.amount;
+        return s;
+      }
+
+      function render() {
+        // Combined total drives both the holdings percentages and the
+        // header total, mirroring what the rebalance math will use.
+        let holdingsTotal = 0;
+        for (const amount of holdings.values()) holdingsTotal += amount;
+        const extraCash = cashTotal();
+        const total = holdingsTotal + extraCash;
+
+        $list.innerHTML = "";
+
+        // Holdings bubbles (kept in insertion order via Map iteration).
+        for (const [ticker, amount] of holdings) {
+          const pct = total > 0 ? (amount / total) * 100 : 0;
+          const li = document.createElement("li");
+          li.className = "holding-bubble";
+          li.innerHTML = `
+            <span class="bubble-ticker"></span>
+            <span class="bubble-amount"></span>
+            <span class="bubble-pct"></span>
+            <button type="button" class="bubble-remove" aria-label="Remove holding">×</button>
+          `;
+          li.querySelector(".bubble-ticker").textContent = ticker;
+          li.querySelector(".bubble-amount").textContent = fmtAmount(amount);
+          li.querySelector(".bubble-pct").textContent = fmtPercent(pct);
+          const key = ticker;
+          li.querySelector(".bubble-remove").addEventListener("click", () => {
+            holdings.delete(key);
+            render();
+          });
+          $list.appendChild(li);
+        }
+
+        // Cash deposits (green bubbles). Each cash bubble's % share is
+        // of the combined total so the user sees how much "new money"
+        // they're adding relative to their existing portfolio.
+        for (const dep of cashDeposits) {
+          const pct = total > 0 ? (dep.amount / total) * 100 : 0;
+          const li = document.createElement("li");
+          li.className = "cash-bubble";
+          li.innerHTML = `
+            <span class="cash-tag">cash</span>
+            <span class="cash-amount"></span>
+            <span class="bubble-pct"></span>
+            <button type="button" class="bubble-remove" aria-label="Remove cash deposit">×</button>
+          `;
+          li.querySelector(".cash-amount").textContent = fmtAmount(dep.amount);
+          li.querySelector(".bubble-pct").textContent = fmtPercent(pct);
+          li.querySelector(".bubble-remove").addEventListener("click", () => {
+            const idx = cashDeposits.findIndex((c) => c.id === dep.id);
+            if (idx !== -1) cashDeposits.splice(idx, 1);
+            render();
+          });
+          $list.appendChild(li);
+        }
+
+        $total.textContent = fmtAmount(total);
+      }
+
+      function updateAddEnabled() {
+        const t = normalizeTicker($ticker.value);
+        const a = parseFloat($amount.value);
+        $addBtn.disabled = t.length === 0 || !Number.isFinite(a) || a <= 0;
+        const c = parseFloat($cashInput.value);
+        $cashAddBtn.disabled = !Number.isFinite(c) || c <= 0;
+        // Also refresh the Rebalance button: it depends on whether the
+        // user has any holdings or cash contributed, not on whether the
+        // + buttons in this form are currently enabled.
+        updateRebalanceButton();
+      }
+
+      function addHolding(tickerRaw, amountRaw) {
+        const ticker = normalizeTicker(tickerRaw);
+        const amount = parseFloat(amountRaw);
+        if (!ticker || !Number.isFinite(amount) || amount <= 0) return false;
+        holdings.set(ticker, amount); // overwrite if same ticker is re-added
+        render();
+        $ticker.value = "";
+        $amount.value = "";
+        $ticker.focus();
+        updateAddEnabled();
+        return true;
+      }
+
+      function addCash(amountRaw) {
+        const amount = parseFloat(amountRaw);
+        if (!Number.isFinite(amount) || amount <= 0) return false;
+        cashDeposits.push({ id: ++cashSeq, amount });
+        render();
+        $cashInput.value = "";
+        $cashInput.focus();
+        updateAddEnabled();
+        return true;
+      }
+
+      $form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        addHolding($ticker.value, $amount.value);
+      });
+
+      $cashForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        addCash($cashInput.value);
+      });
+
+      $ticker.addEventListener("input", updateAddEnabled);
+      $amount.addEventListener("input", updateAddEnabled);
+      $cashInput.addEventListener("input", updateAddEnabled);
+
+      // Enter inside ticker advances to amount; Enter elsewhere just
+      // submits the parent form (the form's submit handler handles it).
+      $ticker.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          $amount.focus();
+        }
+      });
+
+      // Initial UI hydration is done after the AGQQQ section runs the
+      // ready-watcher (which calls updateAddEnabled on load), so we
+      // don't need to call render()/updateAddEnabled() here.
+      // -----------------------------------------------------------
+      // AGQQQ target weights
+      // -----------------------------------------------------------
+      // agqqqWeight: Map<normalizedTicker, { percent, company, position }>
+      // Each percent is (item.percent / sum of top-15 percents) * 100
+      const agqqqWeight = new Map();
+      const $targetBars = document.getElementById("targetBars");
+      const $targetChart = document.getElementById("targetChart");
+      const $error = document.getElementById("error");
+
+      function renderTargetChart() {
+        // Compute max pct to scale bars relative to the largest,
+        // so the largest bar fills the track and others scale down.
+        let maxPct = 0;
+        for (const v of agqqqWeight.values()) {
+          if (v.percent > maxPct) maxPct = v.percent;
+        }
+
+        const rows = [...agqqqWeight.entries()].sort(
+          (a, b) => b[1].percent - a[1].percent,
+        );
+
+        $targetBars.innerHTML = "";
+        for (const [ticker, info] of rows) {
+          const widthPct = maxPct > 0 ? (info.percent / maxPct) * 100 : 0;
+          const row = document.createElement("div");
+          row.className = "target-bar";
+          row.innerHTML = `
+            <span class="bar-ticker"></span>
+            <div class="bar-track"><div class="bar-fill"></div></div>
+            <span class="bar-pct"></span>
+          `;
+          row.querySelector(".bar-ticker").textContent = ticker;
+          row.querySelector(".bar-pct").textContent =
+            `${info.percent.toFixed(2)}%`;
+          const fill = row.querySelector(".bar-fill");
+          // Defer width set so the CSS transition runs from 0 -> value.
+          requestAnimationFrame(() => {
+            fill.style.width = `${widthPct}%`;
+          });
+          $targetBars.appendChild(row);
+        }
+      }
+
+      async function fetchAgqqqWeights() {
+        try {
+          // /holdings (and /api/holdings) both return the data; the
+          // scraper already merges GOOG + GOOGL into a single GOOG row.
+          const response = await fetch("/holdings");
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+          const items = Array.isArray(data.items) ? data.items : [];
+
+          // Take top 15 by percent (the source is typically already
+          // sorted, but sort defensively in case the order drifts).
+          const top15 = [...items]
+            .sort((a, b) => (b.percent || 0) - (a.percent || 0))
+            .slice(0, 15);
+
+          const top15Sum = top15.reduce(
+            (s, it) => s + (Number(it.percent) || 0),
+            0,
+          );
+
+          if (top15Sum <= 0) throw new Error("No holdings data returned");
+
+          agqqqWeight.clear();
+          top15.forEach((it, idx) => {
+            const ticker = String(it.ticker || "")
+              .trim()
+              .toUpperCase();
+            if (!ticker) return;
+            agqqqWeight.set(ticker, {
+              percent: ((Number(it.percent) || 0) / top15Sum) * 100,
+              company: it.company || "",
+              position: idx + 1,
+            });
+          });
+
+          renderTargetChart();
+        } catch (error) {
+          console.error("Error fetching AGQQQ weights:", error);
+          $error.style.display = "block";
+          $error.textContent =
+            "Failed to load AGQQQ target weights. Please try again later.";
+          $targetChart.style.display = "none";
+        }
+      }
+
+      fetchAgqqqWeights();
+
+      // -----------------------------------------------------------
+      // Rebalance: compute trades + post-rebalance summary
+      // -----------------------------------------------------------
+      // Math:
+      //   Σ (wᵢ * T) = totalInvested           (target dollars sum)
+      //   With Σ wᵢ = 1, this gives T = totalInvested.
+      //   xᵢ = wᵢ * T - aᵢ                      (buy if +, sell if -)
+      // Weights wᵢ come from /holdings (the same map above, after
+      // GOOG/GOOGL merge). For tickers the user holds that aren't in
+      // AGQQQ, wᵢ = 0 so xᵢ = -aᵢ (sell all).
+      const $rebalanceBtn = document.getElementById("rebalanceBtn");
+      const $rebalanceBtnHint = document.getElementById("rebalanceBtnHint");
+      const $results = document.getElementById("results");
+      const $tradesBody = document.getElementById("tradesBody");
+      const $summaryBody = document.getElementById("summaryBody");
+      const $clearBtn = document.getElementById("clearBtn");
+
+      // Skip sub-cent trades to avoid noise (e.g. rounding dust).
+      const TRADE_EPSILON = 0.005;
+      // Absolute value considered "no position" (not zero, but tiny).
+      const HOLDING_EPSILON = 0.005;
+
+      function setRebalanceButtonReady() {
+        $rebalanceBtn.disabled = false;
+        $rebalanceBtn.textContent = "Rebalance";
+      }
+
+      function setRebalanceButtonError(msg) {
+        $rebalanceBtn.disabled = true;
+        $rebalanceBtn.innerHTML = "Rebalance <span class=\"btn-hint\"></span>";
+        $rebalanceBtn.querySelector(".btn-hint").textContent = msg;
+      }
+
+      // Single source of truth for the Rebalance button's enabled state.
+      // The button is enabled iff:
+      //   1) AGQQQ weights have loaded, AND
+      //   2) the user has at least one holding or cash deposit > 0.
+      // Called whenever inputs change (via updateAddEnabled) and on the
+      // poll tick once weights arrive. The click handler must NOT
+      // mutate $rebalanceBtn.disabled — it just runs the calculation;
+      // disabled/disabled-from-click is a property of (inputs + weights),
+      // not of the click event itself.
+      function updateRebalanceButton() {
+        if (agqqqWeight.size === 0) {
+          setRebalanceButtonError("Loading weights…");
+          return;
+        }
+        if (totalInvested() <= 0) {
+          setRebalanceButtonError("Add a holding or cash first");
+          return;
+        }
+        setRebalanceButtonReady();
+      }
+
+      function totalInvested() {
+        let s = 0;
+        for (const a of holdings.values()) s += a;
+        for (const c of cashDeposits) s += c.amount;
+        return s;
+      }
+
+      function calculateRebalance() {
+        const T = totalInvested();
+        if (T <= 0) return { error: "Add a holding or cash first." };
+        if (agqqqWeight.size === 0)
+          return { error: "AGQQQ target weights haven't loaded yet." };
+
+        // Build the trade set over the union of (user holdings) and
+        // (AGQQQ tickers). Tickers only in AGQQQ (user doesn't hold) get
+        // a buy equal to the full target. Tickers only in holdings
+        // (user holds, AGQQQ doesn't) get a full sell (wᵢ = 0).
+        const tickers = new Set();
+        for (const t of holdings.keys()) tickers.add(t);
+        for (const t of agqqqWeight.keys()) tickers.add(t);
+
+        const trades = []; // { ticker, action, amount, pctOfPortfolio }
+        const summary = []; // { ticker, heldAfter, pct, target }
+
+        for (const ticker of tickers) {
+          const w = (agqqqWeight.get(ticker)?.percent ?? 0) / 100;
+          const a = holdings.get(ticker) ?? 0;
+          const x = w * T - a; // + buy, - sell
+
+          // Post-rebalance dollars held (clamped at 0; the trade is the
+          // mechanism for getting to the right amount).
+          const heldAfter = a + x;
+          const heldAfterClamped = Math.max(0, heldAfter);
+
+          const pct = (heldAfterClamped / T) * 100;
+          const targetPct = w * 100;
+
+          // Suppress dust trades but keep the summary row.
+          if (Math.abs(x) >= TRADE_EPSILON) {
+            trades.push({
+              ticker,
+              action: x > 0 ? "buy" : "sell",
+              amount: Math.abs(x),
+              signedAmount: x,
+              pctOfPortfolio: (Math.abs(x) / T) * 100,
+            });
+          }
+
+          // Suppress zero/empty rows from the summary (no point holding
+          // a near-zero residual that's already been sold).
+          if (
+            heldAfterClamped >= HOLDING_EPSILON ||
+            (w > 0 && a > 0)
+          ) {
+            summary.push({
+              ticker,
+              heldAfter: heldAfterClamped,
+              pct,
+              target: targetPct,
+            });
+          }
+        }
+
+        // Sort trades largest-first by absolute $ amount (requirement).
+        trades.sort((a, b) => b.amount - a.amount);
+        // Summary stays in target-weight order (heaviest AGQQQ position
+        // first) so it visually matches the target chart above.
+        summary.sort((a, b) => b.pct - a.pct);
+
+        return { trades, summary, T };
+      }
+
+      function renderTrades(trades) {
+        $tradesBody.innerHTML = "";
+        for (const trade of trades) {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td class="checkbox-cell">
+              <input type="checkbox" aria-label="Mark trade done" />
+            </td>
+            <td class="trade-ticker"></td>
+            <td class="trade-action"></td>
+            <td class="trade-amount"></td>
+            <td class="trade-pct"></td>
+          `;
+          tr.querySelector(".trade-ticker").textContent = trade.ticker;
+          const $action = tr.querySelector(".trade-action");
+          $action.textContent = trade.action;
+          $action.classList.add(
+            trade.action === "buy" ? "buy" : "sell",
+          );
+          tr.querySelector(".trade-amount").textContent =
+            fmtAmount(trade.amount);
+          tr.querySelector(".trade-pct").textContent =
+            `${trade.pctOfPortfolio.toFixed(2)}%`;
+
+          const cb = tr.querySelector('input[type="checkbox"]');
+          cb.addEventListener("change", () => {
+            tr.classList.toggle("trade-done", cb.checked);
+          });
+          $tradesBody.appendChild(tr);
+        }
+      }
+
+      function renderSummary(summary) {
+        $summaryBody.innerHTML = "";
+        for (const row of summary) {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td class="ticker"></td>
+            <td class="summary-amount"></td>
+            <td class="summary-pct"></td>
+            <td class="summary-target"></td>
+          `;
+          tr.querySelector(".ticker").textContent = row.ticker;
+          tr.querySelector(".summary-amount").textContent =
+            fmtAmount(row.heldAfter);
+          tr.querySelector(".summary-pct").textContent =
+            `${row.pct.toFixed(2)}%`;
+          tr.querySelector(".summary-target").textContent =
+            `target ${row.target.toFixed(2)}%`;
+          $summaryBody.appendChild(tr);
+        }
+      }
+
+      $rebalanceBtn.addEventListener("click", () => {
+        // The button's enabled state is owned by updateRebalanceButton;
+        // do NOT mutate $rebalanceBtn.disabled here. If the user fires a
+        // click while disabled (e.g. programmatically), just bail.
+        if ($rebalanceBtn.disabled) return;
+        const result = calculateRebalance();
+        if (result.error) return; // Defensive; button should be disabled in this case.
+        renderTrades(result.trades);
+        renderSummary(result.summary);
+        $results.hidden = false;
+        $clearBtn.hidden = false; // Show clear only after a real rebalance ran.
+        $results.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+
+      // Reset everything to a fresh-page state.
+      function resetAll() {
+        holdings.clear();
+        cashDeposits.length = 0;
+        cashSeq = 0;
+        $tradesBody.innerHTML = "";
+        $summaryBody.innerHTML = "";
+        $results.hidden = true;
+        $clearBtn.hidden = true;
+        $ticker.value = "";
+        $amount.value = "";
+        $cashInput.value = "";
+        // Refresh UI + button state from the now-empty inputs.
+        render();
+        updateAddEnabled();
+        $ticker.focus();
+      }
+
+      $clearBtn.addEventListener("click", resetAll);
+
+      // Initial hydration. Safe to call now: holdings + cashDeposits are
+      // initialized above, and agqqqWeight is in scope (the empty case
+      // is handled by .holdings-list:empty::before in CSS).
+      render();
+      updateAddEnabled();
+
+      // When AGQQQ weights land, refresh the button once. (The button is
+      // also refreshed by updateAddEnabled on every input change, so this
+      // is the only explicit signal needed for the "weights just arrived"
+      // transition.)
+      const _readyWatcher = setInterval(() => {
+        if (agqqqWeight.size > 0) {
+          updateRebalanceButton();
+          clearInterval(_readyWatcher);
+        }
+      }, 200);
+      // Stop polling after 30s as a safety net.
+      setTimeout(() => clearInterval(_readyWatcher), 30000);
+    </script>
+  </body>
+</html>

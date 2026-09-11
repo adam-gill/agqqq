@@ -9,7 +9,7 @@
     <!-- SEO Meta Tags -->
     <meta
       name="description"
-      content="Calculate your QQQ ETF portfolio allocation with top holdings and AG picks. Get precise investment amounts for each stock based on your budget."
+      content="Calculate your QQQ ETF portfolio allocation with top holdings. Get precise investment amounts for each stock based on your budget."
     />
     <meta
       name="keywords"
@@ -20,7 +20,7 @@
     <meta property="og:title" content="QQQ Portfolio Calculator" />
     <meta
       property="og:description"
-      content="Calculate your QQQ ETF portfolio allocation with top holdings and AG picks. Get precise investment amounts for each stock based on your budget."
+      content="Calculate your QQQ ETF portfolio allocation with top holdingsGet precise investment amounts for each stock based on your budget."
     />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="/favicon.ico" />
@@ -32,7 +32,7 @@
     <meta name="twitter:title" content="QQQ Portfolio Calculator" />
     <meta
       name="twitter:description"
-      content="Calculate your QQQ ETF portfolio allocation with top holdings and AG picks."
+      content="Calculate your QQQ ETF portfolio allocation with top holdings."
     />
     <meta name="twitter:image" content="/favicon.ico" />
     <style>
@@ -180,10 +180,64 @@
         border-radius: 8px;
         font-size: 13px;
         color: #888;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .info-meta {
+        min-width: 0;
       }
 
       .info strong {
         color: #e0e0e0;
+      }
+
+      /* Buttons */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 9px 18px;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        color: #b8b8b8;
+        background: linear-gradient(180deg, #2a2a2a 0%, #1f1f1f 100%);
+        border: 1px solid #333;
+        border-radius: 6px;
+        cursor: pointer;
+        text-decoration: none;
+        user-select: none;
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset,
+          0 1px 2px rgba(0, 0, 0, 0.4);
+        transition: transform 0.18s ease, box-shadow 0.18s ease,
+          background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+      }
+
+      .btn:hover {
+        color: #f0f0f0;
+        background: linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 100%);
+        border-color: #4a90e2;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 14px rgba(74, 144, 226, 0.25),
+          0 2px 4px rgba(0, 0, 0, 0.5),
+          0 1px 0 rgba(255, 255, 255, 0.06) inset;
+      }
+
+      .btn:active {
+        transform: translateY(0);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) inset;
+      }
+
+      .btn:focus-visible {
+        outline: none;
+        border-color: #4a90e2;
+        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.35);
       }
 
       input[type="checkbox"]:not(.row-checkbox) {
@@ -240,6 +294,10 @@
         width: 60px;
       }
 
+      .skeleton-rank {
+        width: 32px;
+      }
+
       .skeleton-percent {
         width: 50px;
       }
@@ -272,12 +330,6 @@
             min="0"
           />
         </div>
-        <div class="control-group">
-          <div class="checkbox-group">
-            <input type="checkbox" id="includeAgPicks" checked />
-            <label for="includeAgPicks">Include AG Picks</label>
-          </div>
-        </div>
       </div>
 
       <div id="error" class="error" style="display: none"></div>
@@ -285,6 +337,7 @@
       <table id="tableContainer">
         <thead>
           <tr>
+            <th>RANK</th>
             <th>TICKER</th>
             <th>QQQ %</th>
             <th>AG %</th>
@@ -295,6 +348,7 @@
         <tbody id="tableBody">
           <!-- Skeleton loading rows -->
           <tr class="skeleton-row">
+            <td><div class="skeleton skeleton-rank"></div></td>
             <td><div class="skeleton skeleton-ticker"></div></td>
             <td><div class="skeleton skeleton-percent"></div></td>
             <td><div class="skeleton skeleton-percent"></div></td>
@@ -302,6 +356,7 @@
             <td><div class="skeleton-checkbox"></div></td>
           </tr>
           <tr class="skeleton-row">
+            <td><div class="skeleton skeleton-rank"></div></td>
             <td><div class="skeleton skeleton-ticker"></div></td>
             <td><div class="skeleton skeleton-percent"></div></td>
             <td><div class="skeleton skeleton-percent"></div></td>
@@ -309,6 +364,7 @@
             <td><div class="skeleton-checkbox"></div></td>
           </tr>
           <tr class="skeleton-row">
+            <td><div class="skeleton skeleton-rank"></div></td>
             <td><div class="skeleton skeleton-ticker"></div></td>
             <td><div class="skeleton skeleton-percent"></div></td>
             <td><div class="skeleton skeleton-percent"></div></td>
@@ -316,6 +372,7 @@
             <td><div class="skeleton-checkbox"></div></td>
           </tr>
           <tr class="skeleton-row">
+            <td><div class="skeleton skeleton-rank"></div></td>
             <td><div class="skeleton skeleton-ticker"></div></td>
             <td><div class="skeleton skeleton-percent"></div></td>
             <td><div class="skeleton skeleton-percent"></div></td>
@@ -323,6 +380,7 @@
             <td><div class="skeleton-checkbox"></div></td>
           </tr>
           <tr class="skeleton-row">
+            <td><div class="skeleton skeleton-rank"></div></td>
             <td><div class="skeleton skeleton-ticker"></div></td>
             <td><div class="skeleton skeleton-percent"></div></td>
             <td><div class="skeleton skeleton-percent"></div></td>
@@ -330,6 +388,7 @@
             <td><div class="skeleton-checkbox"></div></td>
           </tr>
           <tr class="skeleton-row">
+            <td><div class="skeleton skeleton-rank"></div></td>
             <td><div class="skeleton skeleton-ticker"></div></td>
             <td><div class="skeleton skeleton-percent"></div></td>
             <td><div class="skeleton skeleton-percent"></div></td>
@@ -337,6 +396,7 @@
             <td><div class="skeleton-checkbox"></div></td>
           </tr>
           <tr class="skeleton-row">
+            <td><div class="skeleton skeleton-rank"></div></td>
             <td><div class="skeleton skeleton-ticker"></div></td>
             <td><div class="skeleton skeleton-percent"></div></td>
             <td><div class="skeleton skeleton-percent"></div></td>
@@ -344,6 +404,7 @@
             <td><div class="skeleton-checkbox"></div></td>
           </tr>
           <tr class="skeleton-row">
+            <td><div class="skeleton skeleton-rank"></div></td>
             <td><div class="skeleton skeleton-ticker"></div></td>
             <td><div class="skeleton skeleton-percent"></div></td>
             <td><div class="skeleton skeleton-percent"></div></td>
@@ -351,6 +412,7 @@
             <td><div class="skeleton-checkbox"></div></td>
           </tr>
           <tr class="skeleton-row">
+            <td><div class="skeleton skeleton-rank"></div></td>
             <td><div class="skeleton skeleton-ticker"></div></td>
             <td><div class="skeleton skeleton-percent"></div></td>
             <td><div class="skeleton skeleton-percent"></div></td>
@@ -358,6 +420,7 @@
             <td><div class="skeleton-checkbox"></div></td>
           </tr>
           <tr class="skeleton-row">
+            <td><div class="skeleton skeleton-rank"></div></td>
             <td><div class="skeleton skeleton-ticker"></div></td>
             <td><div class="skeleton skeleton-percent"></div></td>
             <td><div class="skeleton skeleton-percent"></div></td>
@@ -365,6 +428,15 @@
             <td><div class="skeleton-checkbox"></div></td>
           </tr>
           <tr class="skeleton-row">
+            <td><div class="skeleton skeleton-rank"></div></td>
+            <td><div class="skeleton skeleton-ticker"></div></td>
+            <td><div class="skeleton skeleton-percent"></div></td>
+            <td><div class="skeleton skeleton-percent"></div></td>
+            <td><div class="skeleton skeleton-amount"></div></td>
+            <td><div class="skeleton-checkbox"></div></td>
+          </tr>
+          <tr class="skeleton-row">
+            <td><div class="skeleton skeleton-rank"></div></td>
             <td><div class="skeleton skeleton-ticker"></div></td>
             <td><div class="skeleton skeleton-percent"></div></td>
             <td><div class="skeleton skeleton-percent"></div></td>
@@ -375,7 +447,10 @@
       </table>
 
       <div class="info">
-        <strong>Last Updated:</strong> <span id="lastUpdated">-</span>
+        <div class="info-meta">
+          <strong>Last Updated:</strong> <span id="lastUpdated">-</span>
+        </div>
+        <a href="rebalance.html" class="btn btn-rebalance">Rebalance</a>
       </div>
     </div>
 
@@ -390,7 +465,7 @@
             throw new Error("Failed to fetch data");
           }
           const data = await response.json();
-          holdingsData = data.items?.slice(0, 11) || [];
+          holdingsData = data.items?.slice(0, 15) || [];
           agPicksData = data.agPicks || [];
 
           // Format and display last updated
@@ -418,13 +493,7 @@
       }
 
       function calculateWeights() {
-        const includeAgPicks =
-          document.getElementById("includeAgPicks").checked;
         const stocks = [...holdingsData];
-
-        if (includeAgPicks) {
-          stocks.push(...agPicksData);
-        }
 
         // Calculate total percentage
         const totalPercent = stocks.reduce(
@@ -440,8 +509,6 @@
       }
 
       function renderTable() {
-        const includeAgPicks =
-          document.getElementById("includeAgPicks").checked;
         const investmentAmount =
           parseFloat(document.getElementById("investment").value) || 0;
         const weights = calculateWeights();
@@ -451,31 +518,19 @@
         // Clear skeleton rows and existing content
         tbody.innerHTML = "";
 
-        // Render top 11 holdings
-        weights.slice(0, 11).forEach((stock) => {
-          const row = createStockRow(stock, investmentAmount);
+        // Render top 15 holdings
+        weights.slice(0, 15).forEach((stock, index) => {
+          const row = createStockRow(stock, investmentAmount, index + 1);
           tbody.appendChild(row);
         });
-
-        // Render AG Picks if included
-        if (includeAgPicks && weights.length > 11) {
-          const separatorRow = document.createElement("tr");
-          separatorRow.innerHTML =
-            '<td colspan="5" class="ag-picks-separator">AG Picks</td>';
-          tbody.appendChild(separatorRow);
-
-          weights.slice(11).forEach((stock) => {
-            const row = createStockRow(stock, investmentAmount);
-            tbody.appendChild(row);
-          });
-        }
       }
 
-      function createStockRow(stock, investmentAmount) {
+      function createStockRow(stock, investmentAmount, rank) {
         const row = document.createElement("tr");
         const amount = (stock.weight / 100) * investmentAmount;
 
         row.innerHTML = `
+        <td class="rank">${rank}</td>
         <td class="ticker">${stock.ticker}</td>
         <td>${stock.percent.toFixed(2)}%</td>
         <td>${stock.weight.toFixed(2)}%</td>
@@ -490,9 +545,6 @@
       document
         .getElementById("investment")
         .addEventListener("input", renderTable);
-      document
-        .getElementById("includeAgPicks")
-        .addEventListener("change", renderTable);
 
       // Initial fetch
       fetchData();

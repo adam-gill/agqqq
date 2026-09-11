@@ -6,7 +6,7 @@
     "dev": "ts-node server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "restart": "docker compose down && docker compose up -d --build && docker compose logs -f",
+    "restart": "docker compose down && docker compose up -d --build --force-recreate",
     "flush-cache": "docker compose down -v"
   },
   "dependencies": {

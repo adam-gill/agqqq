@@ -22,6 +22,7 @@ export const tickerMap = {
   "Booking Holdings Inc": "BKNG",
   "Adobe Inc": "ADBE",
   "Amgen Inc": "AMGN",
+  "Space Exploration Technologies Corp": "SPCX",
   "Advanced Micro Devices Inc": "AMD",
   "Texas Instruments Inc": "TXN",
   "Gilead Sciences Inc": "GILD",
